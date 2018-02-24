@@ -43,15 +43,43 @@ NavigationPane {
         function fillGroupDataModel() {
         }
         function errorDialog(errorMessage) {
-            wait.close();
             myQmlToast.body = errorMessage;
             myQmlToast.show();
         }
-
+        function trainErrorHandler(errorMessage){
+            wait.close()
+            errorDialog(errorMessage)
+        }
+        
+        function gpsErrorHandler(errorMessage){
+            gpsButton.enabled = true
+            //gpsButton.imageSource = "asset:///images/ic_location.png"
+            if(errorMessage != "")
+                errorDialog(errorMessage)
+        }
+        
+        function setStation(staz){
+            if(staz != "")
+                screenName.text = staz
+            //gpsButton.imageSource = "asset:///images/ic_location.png"
+            gpsButton.enabled=true   
+            main.da_ready = true
+            main.stazpart = staz
+        }
+        
+         function closeList(list){
+            list.visible = false;
+            listContainer.minHeight = ui.du(0);
+            list.bottomMargin = ui.du(0);
+            screen.scrollViewProperties.scrollMode = ScrollMode.Vertical
+        }
+         
         onCreationCompleted: {
-            _artifactline.artifactsLoaded.connect(pushPane);
-            _artifactline.badResponse.connect(errorDialog);
-            _artifactline.pendToast.connect(pendSwitched.show);
+            _artifactline.artifactsLoaded.connect(pushPane)
+            _artifactline.badResponse.connect(trainErrorHandler)
+            _artifactline.pendToast.connect(pendSwitched.show)
+            stazlist.nearestSelected.connect(setStation)
+            stazlist.locationError.connect(gpsErrorHandler)
             //_artifactline.stazioniLoaded.connect(setModel);
             //fillGroupDataModel();
         }
@@ -105,7 +133,14 @@ NavigationPane {
                                 //textStyle.color: Color.create("#f0f0f0")
                             }
                             //! [1]
-                            TextField {
+                            Container {
+                                layout: StackLayout {
+                                    orientation: LayoutOrientation.LeftToRight
+
+                                }
+
+                              
+                                TextField {
                                 id: screenName
                                 objectName: "partTxt"
                                 text: ""
@@ -116,7 +151,6 @@ NavigationPane {
                                         main.da_ready = false;
                                         //if(text != "")
                                         stazlist.smartLoad(screenName.text.trim());
-
                                     }
                                 }
                                 onFocusedChanged: {
@@ -138,6 +172,22 @@ NavigationPane {
                                      * l_da.bottomMargin = ui.du(0);
                                      }*/
                                 }
+                            }
+                            
+                            Button {
+                                id: gpsButton
+                                imageSource: "asset:///images/ic_location_red.png"
+                                onClicked: {
+                                    enabled = false
+                                    stazlist.loadNearest()
+                                    main.closeList(l_da)
+                                    //imageSource = "asset:///images/ic_location_red.png"
+                                }
+                                preferredWidth: ui.du(3)
+                                
+
+                                }
+
                             }
                             ListView {
                                 id: l_da
@@ -207,17 +257,13 @@ NavigationPane {
                                     }
                                 ]
                                 onTriggered: {
+                                    
                                     var selectedItem = dataModel.data(indexPath);
                                     screenName.text = selectedItem.name;
-                                    l_da.visible = false;
                                     main.stazpart = selectedItem.name;
                                     //main.stazpartid = selectedItem.id;
                                     main.da_ready = true;
-                                    listContainer.minHeight = ui.du(0);
-                                    l_da.bottomMargin = ui.du(0);
-
-                                    screen.scrollViewProperties.scrollMode = ScrollMode.Vertical
-
+                                    main.closeList(l_da)
                                     //clearSelection() //select(indexPath)
                                 }
 
@@ -240,6 +286,7 @@ NavigationPane {
                                     if (_screenName.focused == true) {
                                         screen.scrollViewProperties.scrollMode = ScrollMode.None
                                         screenName.visible = false;
+                                        gpsButton.visible = false;
                                         da.visible = false;
                                         listContainer.minHeight = ui.du(80);
                                         l_a.visible = true;
@@ -312,6 +359,7 @@ NavigationPane {
                                     _screenName.text = selectedItem.name;
                                     l_a.visible = false;
                                     screenName.visible = true;
+                                    gpsButton.visible = true;
                                     da.visible = true;
                                     listContainer.minHeight = ui.du(0);
                                     main.stazarr = selectedItem.name;
@@ -520,7 +568,7 @@ NavigationPane {
 
                 onTriggered: {
                     wait.open();
-                    main.data = Utils.getdate(dtpicker);
+                    main.data = Utils.getDateFromPicker(dtpicker);
                     _artifactline.requestArtifact(main.stazpart, main.stazarr, err.text, adulti.selectedOption.text, bambini.selectedOption.text, av.checked ? "true" : "false", italo.checked, false);
                     stazlist.save(main.stazpart, main.stazarr);
                 }

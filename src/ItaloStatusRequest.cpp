@@ -7,8 +7,7 @@
 
 #include <src/ItaloStatusRequest.hpp>
 
-ItaloStatusRequest::ItaloStatusRequest(QNetworkAccessManager * qnam, QVariantMap * statusData, QObject * parent) :
-        QObject(parent)
+ItaloStatusRequest::ItaloStatusRequest(QNetworkAccessManager * qnam, QVariantMap * statusData, QObject * parent) : QObject(parent)
 {
     m_qnam = qnam;
     m_statusData = statusData;
@@ -24,7 +23,7 @@ void ItaloStatusRequest::requestStatusData(const QString &num)
 
     m_num = num;
 
-    requestStatus->requestArtifactline("http://italoinviaggio.italotreno.it/SiteCore/IT/italo/Pagine/default.aspx");
+    requestStatus->requestArtifactline("https://italoinviaggio.italotreno.it/SiteCore/IT/italo/Pagine/default.aspx");
 
 }
 

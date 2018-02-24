@@ -13,12 +13,21 @@
         }else return " ";
     }
     
-    function getDateFromPicker(dtpicker){
+    /*function getDateFromPicker(dtpicker){
         var x = dtpicker.value.getDate()+"-"+(parseInt(dtpicker.value.getMonth())+1)+"-"+dtpicker.value.getFullYear()+"T"+tmpicker.value.getHours()+":";
         if (tmpicker.value.getMinutes() < 10)
             x += "0" + tmpicker.value.getMinutes();
         else 
             x += tmpicker.value.getMinutes();
+        return x;
+    }*/
+    
+    function getDateFromPicker(dtpicker) {
+        var x = dtpicker.value.getDate() + "/" + (dtpicker.value.getMonth() + 1) + "/" + dtpicker.value.getFullYear() + " " + dtpicker.value.getHours() + ":";
+        if (dtpicker.value.getMinutes() < 10)
+            x += "0" + dtpicker.value.getMinutes();
+        else
+            x += dtpicker.value.getMinutes();
         return x;
     }
     

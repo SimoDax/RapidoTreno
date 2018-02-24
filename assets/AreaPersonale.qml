@@ -7,6 +7,8 @@ Container {
     Titolo {
         text: "Area Personale"
     }
+        
+
 
     Container {
         leftPadding: ui.du(2.2)
@@ -63,11 +65,11 @@ Container {
     }
 
     ListView {
+
         id: lista
         objectName: "lista"
         dataModel: _artifactline.tickets
-        scrollRole: ScrollRole.Main
-
+ 		scrollRole: ScrollRole.Main
         function openpdf(ticket, tsid) {
             _artifactline.openTicket(ticket, tsid);
         }
@@ -112,5 +114,4 @@ Container {
             }
         ]
     }
-
 }

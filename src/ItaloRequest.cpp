@@ -10,7 +10,7 @@
 
 #include <QtCore/QObject>
 
-#define ITALO_DEBUG
+//#define ITALO_DEBUG
 
 #define SEARCH_WINDOW 3
 
@@ -114,7 +114,7 @@ void ItaloRequest::parse(const QString &response){
 
         index = response.indexOf(QRegExp("<li data-search-date=\"\\d+/\\d+/\\d+\"\\s+class=\"selected\"")) + 22;
         qDebug()<<"index:"<< index;
-        date = QDate::fromString(response.mid(index, response.indexOf("\"", index)-index), "dd/M/yyyy");
+        date = QDate::fromString(response.mid(index, response.indexOf("\"", index)-index), "d/M/yyyy");
         qDebug()<<response.mid(index, response.indexOf("\"", index)-index);
 
         for(int i=0; i<lista.length(); i++){
@@ -163,10 +163,13 @@ void ItaloRequest::parse(const QString &response){
             QDateTime datetime;
             datetime.setTime(time);
             datetime.setDate(date);
-            soluzione["departuretime"] = (quint64)datetime.toMSecsSinceEpoch();
-            qDebug()<< soluzione["departuretime"];
+          qDebug()<<datetime.toString(Qt::ISODate);
+          //qDebug()<<"Italo qint64 departureTime: "<<(qint64)datetime.toMSecsSinceEpoch()<<" quint64: "<<(quint64)datetime.toMSecsSinceEpoch();
+            soluzione["departuretime"] = (qulonglong)datetime.toMSecsSinceEpoch();
+          //qDebug()<< soluzione["departuretime"];
             datetime.setTime(time2);
             soluzione["arrivaltime"] = datetime.toMSecsSinceEpoch();
+          //qDebug()<<"arrivaltime: "<<datetime.toMSecsSinceEpoch();
 
             m_model->insert(soluzione);
         }

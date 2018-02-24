@@ -41,7 +41,14 @@ public Q_SLOTS:
  Q_SIGNALS:
 
     void locationError(QString err);
-    void nearestLoaded();
+    void nearestSelected(QString staz);
+
+private Q_SLOTS:
+
+    void onGPSFix(const QGeoPositionInfo &fix);
+    void onDialogFinished(bb::system::SystemUiResult::Type result);
+    void onStationsDialogFinished(bb::system::SystemUiResult::Type result);
+    void onTimeout();
 
 private:
 
@@ -52,12 +59,6 @@ private:
     bb::cascades::DataModel* stazioni() const;
 
     void caricaordineinversoesalva();
-
-private Q_SLOTS:
-
-    void onGPSFix(const QGeoPositionInfo &fix);
-    void onDialogFinished(SystemUiResult::Type result);
-    void onTimeout();
 
 private:
 

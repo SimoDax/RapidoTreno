@@ -2,7 +2,7 @@ import bb.cascades 1.4
 import bb.system 1.2
 
 NavigationPane {
-    id: navPane
+    id: navigationPane
     onPopTransitionEnded: page.destroy()
     function triggerSearch(num) {
         numtreno.text = num;
@@ -10,15 +10,19 @@ NavigationPane {
     }
     Page {
         property variant num
-        property alias waiter: wait
         id: statoricerca
         function pushPane() {
             //_artifactline.salvaRicerca(numtreno.text.trim());
             wait.close();
-            if (parseInt(numtreno.text) > 9900 && parseInt(numtreno.text) < 9999)
-                navPane.push(statoTrenoPageItalo.createObject());
-            else
-                navPane.push(statoTrenoPage.createObject());
+            if (parseInt(numtreno.text) > 9900 && parseInt(numtreno.text) < 9999){
+                var page = statoTrenoPageItalo.createObject();
+                navigationPane.push(page);
+            }
+            else{
+                var page = statoTrenoPage.createObject();
+                navigationPane.push(page);
+            }
+            page.numeroTreno = numtreno.text.trim();
             _artifactline.salvaRicerca(numtreno.text.trim());
         }
         function errorDialog(errorMessage) {

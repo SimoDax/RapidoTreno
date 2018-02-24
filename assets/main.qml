@@ -75,25 +75,6 @@ TabbedPane {
         }
         delegateActivationPolicy: TabDelegateActivationPolicy.ActivatedWhileSelected
     }
-    /*
-     * Tab {
-     * title: "Blackjack"
-     * imageSource: "asset:///images/blackjack.png"
-     * delegate: Delegate {
-     * id: aa
-     * source: "asset:///fsnews.qml"
-     * }
-     * delegateActivationPolicy: TabDelegateActivationPolicy.ActivatedWhileSelected
-     * }
-     * Tab {
-     * title: "Squillo di lusso"
-     * imageSource: "asset:///images/squillo di lusso.png"
-     * delegate: Delegate {
-     * id: bb
-     * source: "asset:///fsnews.qml"
-     * }
-     * delegateActivationPolicy: TabDelegateActivationPolicy.ActivatedWhileSelected
-     }*/
 
     Menu.definition: MenuDefinition {
         actions: [

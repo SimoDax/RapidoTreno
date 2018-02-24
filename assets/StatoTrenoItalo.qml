@@ -1,6 +1,7 @@
 import bb.cascades 1.4
 
 Page {
+    property string numeroTreno
     Container {
         background: Application.themeSupport.theme.colorTheme.style == VisualStyle.Dark ? Color.create("#e3e3e3") : null
         layout: StackLayout {
@@ -164,9 +165,9 @@ Page {
             imageSource: "asset:///images/ic_reload.png"
             ActionBar.placement: ActionBarPlacement.Signature
             onTriggered: {
-                navPane.pop();
-                statoricerca.waiter.open();
-                _artifactline.requestStatusData(statoricerca.num);
+                navigationPane.pop();
+                wait.open();
+                _artifactline.requestStatusData(numeroTreno);
             }
         }
     ]

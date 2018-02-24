@@ -14,6 +14,7 @@
 #include <cmath>
 #include <bb/location/PositionErrorCode>
 #include <bb/system/SystemDialog>
+#include <bb/system/SystemListDialog>
 #include <bb/system/InvokeManager>
 #include <bb/system/InvokeTargetReply>
 
@@ -26,11 +27,11 @@ using namespace QtMobilitySubset;
 #define ENCRYPTION_KEY Q_UINT64_C(0x0)	//eh, volevi..
 
 const QString LocalDataManager::m_dumpStazioniPath = "./data/dump_2_6.json";
-const QString LocalDataManager::m_dumpViaggiatrenoPath = "./data/dump_coordinate.json";
+const QString LocalDataManager::m_dumpViaggiatrenoPath = "./app/native/assets/dump_coordinate.json";
 const QString LocalDataManager::m_dumpCodiciPath = "./app/native/assets/dump_codici.json";
 const QString LocalDataManager::m_credentialsPath = "./data/credentials.dat";
 
-//  THIS CLASS SHOULD *NOT* DELETE HERSELF
+//  THIS CLASS SHOULD *NOT* DESTROY HERSELF
 
 bool lessThan(const QVariantMap &i, const QVariantMap &j)
 {
@@ -117,10 +118,9 @@ void LocalDataManager::loadNearest()
             src->requestUpdate();
 
     } else {
-        SystemDialog* m_dialog;
-        m_dialog = new SystemDialog("Ok", "Annulla");
+        SystemDialog* m_dialog = new SystemDialog("Ok", "Annulla");
         m_dialog->setTitle("Servizi di posizionamento disattivati");
-        m_dialog->setBody("I servizi di posizionamento sono disattivati, attivarli nelle impostazioni del dispositivo");
+        m_dialog->setBody("I servizi di posizionamento sono disattivati, attivarli nelle impostazioni del dispositivo?");
         bool success = connect(m_dialog, SIGNAL(finished(bb::system::SystemUiResult::Type)), this, SLOT(onDialogFinished(bb::system::SystemUiResult::Type)));
         if(success)
             m_dialog->show();
@@ -130,7 +130,7 @@ void LocalDataManager::loadNearest()
 
 }
 
-void LocalDataManager::onDialogFinished(SystemUiResult::Type result)
+void LocalDataManager::onDialogFinished(bb::system::SystemUiResult::Type result)
 {
     SystemDialog *m_dialog = qobject_cast<SystemDialog*>(sender());
     if (result == SystemUiResult::ConfirmButtonSelection) {
@@ -145,7 +145,9 @@ void LocalDataManager::onDialogFinished(SystemUiResult::Type result)
         InvokeTargetReply *reply = invokeManager.invoke(request);
         if (reply)
             reply->deleteLater();    //i don't give a flying duck if invocation fails, i can't do anything different
+        emit locationError("");
     }
+    else emit locationError("Impossibile determinare la posizione");
     //otherwise we do nothing
     m_dialog->deleteLater();
 }
@@ -156,10 +158,11 @@ void LocalDataManager::onTimeout()
     if (src->property("replyErrorCode").isValid()) {
         PositionErrorCode::Type err = src->property("replyErrorCode").value<PositionErrorCode::Type>();
         if (err == PositionErrorCode::FatalPermission)    //this is why i love bb10 OS
-            emit locationError("All'app non è stato dato il permesso di usare i servizi di localizzazione");
+            emit locationError(QString::fromUtf8("All'app non è stato concesso il permesso di usare i servizi di localizzazione"));
         else
             emit locationError("Impossibile recuperare la posizione del dispositivo");
     }
+    src->deleteLater();
 }
 
 void LocalDataManager::onGPSFix(const QGeoPositionInfo &fix)
@@ -169,14 +172,14 @@ void LocalDataManager::onGPSFix(const QGeoPositionInfo &fix)
     QGeoCoordinate gps = fix.coordinate();  //if i could be where you are..
     if (gps.type() != QGeoCoordinate::InvalidCoordinate) {
 
-        m_stazioni->clear();
+        //m_stazioni->clear();
         readJSON(m_dumpViaggiatrenoPath);
         QList<QVariantMap> stazioni;
         QVariantMap stazione;
 
         for (int i = 0; i < MAX_NEAREST_STATIONS; i++) {    //pretend the first stations are the closest..
             stazione = m_list[i].toMap();
-            stazione["distance"] = getDistance(gps.latitude(), gps.longitude(), stazioni[i]["lat"].toDouble(), stazioni[i]["lon"].toDouble());
+            stazione["distance"] = getDistance(gps.latitude(), gps.longitude(), stazione["lat"].toDouble(), stazione["lon"].toDouble());
             stazioni.append(stazione);
         }
         qSort(stazioni.begin(), stazioni.end(), lessThan);
@@ -190,10 +193,43 @@ void LocalDataManager::onGPSFix(const QGeoPositionInfo &fix)
                 stazioni.removeLast();      //remove farthest to keep MAX_NEAREST_STATIONS size
             }
         }
-        m_stazioni->insertList(stazioni);
-        emit nearestLoaded();
+        m_list.clear();
+        for (int i = 0; i < stazioni.size(); i++)
+            m_list.append(stazioni[i]);
+        //emit nearestLoaded();
+        SystemListDialog* m_listdialog;
+        m_listdialog = new SystemListDialog("Annulla");
+        //m_listdialog->setTitle("Seleziona stazione");
+        m_listdialog->setBody("Seleziona stazione");
+        m_listdialog->setDismissOnSelection(true);
+
+        for (int i = 0; i < m_list.size(); i++) {
+            stazione = stazione = m_list[i].toMap();
+            QGeoCoordinate current(stazione["lat"].toDouble(), stazione["lon"].toDouble());
+            m_listdialog->appendItem(stazione["name"].toString() + " (" + QString::number(gps.distanceTo(current)/1000, 'f', 1) + " km)");
+        }
+        bool success = connect(m_listdialog, SIGNAL(finished(bb::system::SystemUiResult::Type)), this, SLOT(onStationsDialogFinished(bb::system::SystemUiResult::Type)));
+
+        if (success)
+            m_listdialog->exec();
+        else
+            m_listdialog->deleteLater();	//se non riesce a connettersi si blocca la funzione..
     }
     src->deleteLater();
+}
+
+void LocalDataManager::onStationsDialogFinished(bb::system::SystemUiResult::Type result)
+{
+    SystemListDialog *m_dialog = qobject_cast<SystemListDialog*>(sender());
+    if (result == SystemUiResult::ItemSelection) {
+        int index = m_dialog->selectedIndices().value(0);
+        emit nearestSelected(m_list.at(index).toMap()["name"].toString());
+    }
+    else
+        emit nearestSelected(QString::null);
+
+    m_list.clear();
+    m_dialog->deleteLater();
 }
 
 double LocalDataManager::getDistance(double x1, double y1, double x2, double y2)

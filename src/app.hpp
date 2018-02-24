@@ -35,6 +35,7 @@ class App : public QObject
     Q_PROPERTY(bb::cascades::DataModel* tickets READ tickets CONSTANT)
     Q_PROPERTY(QVariantMap statusData READ statusData CONSTANT)
     Q_PROPERTY(QVariantMap profileData READ profileData CONSTANT)
+    Q_PROPERTY(QVariantList trainsDetails READ trainsDetails CONSTANT)
 
 
 public:
@@ -42,6 +43,7 @@ public:
 
 public Q_SLOTS:
     //void caricaStazioni(const QString &iniz);
+
     void requestArtifact(const QString &da, const QString &a, const QString &dt, const QString &adulti, const QString &bambini, const QString &frecce, bool italo, bool silent);
 
     void requestStatusData(const QString &num);
@@ -58,6 +60,8 @@ public Q_SLOTS:
 
     void openTicket(const QString &id, const QString &tsid);
     //void startAsyncLoad();
+
+    void requestOffers(QString id, bool custom);
 
     void setSolutionDetailsModel(const QVariantList indexPath);
 
@@ -107,6 +111,7 @@ Q_SIGNALS:
     void statusDataLoaded();
     void newsLoaded();
     void profileLoaded();
+    void offersLoaded();
     /*
      * The change notification signals of the properties
      */
@@ -176,6 +181,7 @@ private:
     bb::cascades::DataModel* tickets() const;
     QVariantMap statusData() const;
     QVariantMap profileData() const;
+    QVariantList trainsDetails() const;
     //QList<QList<QMap>>* preloaded() const;
 
 private:
@@ -188,6 +194,7 @@ private:
     bb::cascades::GroupDataModel* m_stazioneStatus;
     bb::cascades::GroupDataModel* m_tickets;
     bb::cascades::ArrayDataModel* m_ricerche;
+    QVariantList* m_trainsDetails;
     //bb::cascades::ArrayDataModel* m_stazioni;
     bb::cascades::AbstractPane* root;
     QVariantMap* m_statusData;

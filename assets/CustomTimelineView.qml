@@ -37,6 +37,15 @@ Page {
         //_artifactline.startAsyncLoad();
     }
     
+    function getdate(){
+        var x = main.dtpicker.value.getDate()+"/"+(main.dtpicker.value.getMonth()+1)+"/"+main.dtpicker.value.getFullYear()+"  "+(main.dtpicker.value.getHours()+offset)+":";
+        if (main.dtpicker.value.getMinutes() < 10)
+            x += "0" + main.dtpicker.value.getMinutes();
+        else 
+            x += main.dtpicker.value.getMinutes();
+        return x;
+    }
+    
     onCreationCompleted: {
         //tl.destroyed.connect(_artifactline.clearPreloaded);
         //_artifactline.displayWait.connect(wait.open);
@@ -96,7 +105,7 @@ Page {
                     }
                     verticalAlignment: VerticalAlignment.Center
                     textStyle.color: Color.White
-                    text: Utils.getdate(main.dtpicker)
+                    text: Utils.getDateFromPicker(main.dtpicker)
                     textStyle.textAlign: TextAlign.Right
 
                 }

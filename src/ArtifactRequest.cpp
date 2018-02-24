@@ -9,8 +9,7 @@
 /*
  * Default constructor
  */
-ArtifactRequest::ArtifactRequest(QNetworkAccessManager* networkAccessManager, QObject *parent, int i)
-    : QObject(parent)
+ArtifactRequest::ArtifactRequest(QNetworkAccessManager* networkAccessManager, QObject *parent, int i) : QObject(parent)
 {
     m_i = i;
     m_networkAccessManager = networkAccessManager;

@@ -31,10 +31,10 @@ public:
     void login(QString user, QString pass);
     void openTicket(const QString &id, const QString &tsid);
 
-    QVariantMap profile();
+    //QVariantMap profile();
 
 
- Q_SIGNALS:
+Q_SIGNALS:
 
     void finished();
     void badResponse(QString errorMessage);
@@ -50,11 +50,7 @@ private Q_SLOTS:
     void onTicketsComplete(const QString &info, bool success, int i);
     void onProfileComplete(const QString &info, bool success, int i);
     void onLogin(const QString &info, bool success, int i);
-    void onDownloadComplete(QByteArray &data, QString filename, bool success);
-    void onSaleComplete(const QString &info, bool success, int i);
-    void onInvokeResult();
     void badCredentials();
-    void onDownloadProgress(qint64 received, qint64 total);
 
 
 private:
@@ -62,9 +58,6 @@ private:
     QVariantMap* m_profile;
     QNetworkAccessManager* m_qnam;
     bb::cascades::GroupDataModel* m_tickets;
-    QString m_id, m_tsid;
-    InvokeTargetReply* m_reply;
-    SystemProgressToast* m_progresstoast;
 };
 
 

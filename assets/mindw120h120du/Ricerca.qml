@@ -1,6 +1,7 @@
 import bb.cascades 1.4
 import bb.system 1.2
 import Storage.LocalDataManager 1.0
+import "utils.js" as Utils
 
 NavigationPane {
     id: navigationPane
@@ -41,20 +42,47 @@ NavigationPane {
         function fillGroupDataModel() {
         }
         function errorDialog(errorMessage) {
-            wait.close();
             myQmlToast.body = errorMessage;
             myQmlToast.show();
         }
-
+        function trainErrorHandler(errorMessage){
+            wait.close()
+            errorDialog(errorMessage)
+        }
+        
+        function gpsErrorHandler(errorMessage){
+            gpsButton.enabled = true
+            //gpsButton.imageSource = "asset:///images/ic_location.png"
+            if(errorMessage != "")
+                errorDialog(errorMessage)
+        }
+        
+        function setStation(staz){
+            if(staz != "")
+                screenName.text = staz
+            //gpsButton.imageSource = "asset:///images/ic_location.png"
+            gpsButton.enabled=true   
+            main.da_ready = true
+            main.stazpart = staz
+        }
+        
+         function closeList(list){
+            list.visible = false;
+            listContainer.minHeight = ui.du(0);
+            list.bottomMargin = ui.du(0);
+            screen.scrollViewProperties.scrollMode = ScrollMode.Vertical
+        }
+         
         onCreationCompleted: {
             _artifactline.artifactsLoaded.connect(pushPane);
-            _artifactline.badResponse.connect(errorDialog);
+            _artifactline.badResponse.connect(trainErrorHandler);
             _artifactline.pendToast.connect(pendSwitched.show);
+            stazlist.nearestSelected.connect(setStation)
+            stazlist.locationError.connect(gpsErrorHandler)
             //_artifactline.stazioniLoaded.connect(setModel);
             //fillGroupDataModel();
         }
 
-        //! [0]
 
         Container {
             layout: StackLayout {
@@ -102,6 +130,13 @@ NavigationPane {
                                 //textStyle.color: Color.create("#f0f0f0")
                             }
                             //! [1]
+                            Container {
+                                layout: StackLayout {
+                                    orientation: LayoutOrientation.LeftToRight
+
+                                }
+
+                              
                             TextField {
                                 id: screenName
                                 text: ""
@@ -133,6 +168,22 @@ NavigationPane {
                                      * l_da.bottomMargin = ui.du(0);
                                      }*/
                                 }
+                            }
+                            
+                            Button {
+                                id: gpsButton
+                                imageSource: "asset:///images/ic_location_red.png"
+                                onClicked: {
+                                    enabled = false
+                                    stazlist.loadNearest()
+                                    main.closeList(l_da)
+                                    //imageSource = "asset:///images/ic_location_red.png"
+                                }
+                                preferredWidth: ui.du(3)
+                                
+
+                                }
+
                             }
                             ListView {
                                 id: l_da
@@ -176,13 +227,10 @@ NavigationPane {
                                 onTriggered: {
                                     var selectedItem = dataModel.data(indexPath);
                                     screenName.text = selectedItem.name;
-                                    l_da.visible = false;
                                     main.stazpart = selectedItem.name;
                                     //main.stazpartid = selectedItem.id;
                                     main.da_ready = true;
-                                    listContainer.minHeight = ui.du(0);
-                                    l_da.bottomMargin = ui.du(0);
-                                    screen.scrollViewProperties.scrollMode = ScrollMode.Vertical
+                                    main.closeList(l_da)
                                     //clearSelection() //select(indexPath)
                                 }
 
@@ -205,6 +253,7 @@ NavigationPane {
                                     if (_screenName.focused == true) {
                                         screen.scrollViewProperties.scrollMode = ScrollMode.None
                                         screenName.visible = false;
+                                        gpsButton.visible = false;
                                         da.visible = false;
                                         listContainer.minHeight = ui.du(80);
                                         l_a.visible = true;
@@ -275,6 +324,7 @@ NavigationPane {
                                     _screenName.text = selectedItem.name;
                                     l_a.visible = false;
                                     screenName.visible = true;
+                                    gpsButton.visible = true;
                                     da.visible = true;
                                     listContainer.minHeight = ui.du(0);
                                     main.stazarr = selectedItem.name;
@@ -418,14 +468,6 @@ NavigationPane {
                         }
                     }
                     Label {
-                        function getdate() {
-                            var x = dtpicker.value.getDate() + "-" + (dtpicker.value.getMonth() + 1) + "-" + dtpicker.value.getFullYear() + "T" + tmpicker.value.getHours() + ":";
-                            if (tmpicker.value.getMinutes() < 10)
-                                x += "0" + tmpicker.value.getMinutes();
-                            else
-                                x += tmpicker.value.getMinutes();
-                            return x;
-                        }
                         id: err
                         verticalAlignment: VerticalAlignment.Center
                         //visible: _artifactline.error
@@ -490,18 +532,9 @@ NavigationPane {
                 enabled: main.da_ready && main.a_ready && ! _artifactline.active && (parseInt(adulti.selectedOption.text) + parseInt(bambini.selectedOption.text)) > 0 && main.stazpart != main.stazarr
                 imageSource: "asset:///images/ic_search.png"
 
-                function getdate() {
-                    var x = dtpicker.value.getDate() + "/" + (dtpicker.value.getMonth() + 1) + "/" + dtpicker.value.getFullYear() + " " + dtpicker.value.getHours() + ":";
-                    if (dtpicker.value.getMinutes() < 10)
-                        x += "0" + dtpicker.value.getMinutes();
-                    else
-                        x += dtpicker.value.getMinutes();
-                    return x;
-                }
-
                 onTriggered: {
                     wait.open();
-                    main.data = getdate();
+                    main.data = Utils.getDateFromPicker(dtpicker);
                     _artifactline.requestArtifact(main.stazpart, main.stazarr, err.text, adulti.selectedOption.text, bambini.selectedOption.text, av.checked ? "true" : "false", italo.checked, false);
                     stazlist.save(main.stazpart, main.stazarr);
                 }

@@ -13,8 +13,7 @@ using namespace bb::data;
 using namespace bb::cascades;
 using namespace bb::system;
 
-StatusRequest::StatusRequest(QNetworkAccessManager * qnam, QVariantMap * statusData, QObject * parent) :
-        QObject(parent)
+StatusRequest::StatusRequest(QNetworkAccessManager * qnam, QVariantMap * statusData, QObject * parent) : QObject(parent)
 {
     m_qnam = qnam;
     m_statusData = statusData;

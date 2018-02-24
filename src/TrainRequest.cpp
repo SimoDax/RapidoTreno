@@ -27,7 +27,10 @@ TrainRequest::TrainRequest(QNetworkAccessManager * qnamPtr, bb::cascades::GroupD
 void TrainRequest::getSolutions(const QString &da, const QString &a, const QDateTime &t, const QString &adulti, const QString &bambini, const QString &frecce, bool italo)
 {
 
-    QString url = "https://www.lefrecce.it/msite/api/solutions?origin=" + da + "&destination=" + a + "&arflag=A&adate=" + t.toString("dd/MM/yyyy") + "&atime=" + t.toString("h") + "&adultno=" + adulti + "&childno=" + bambini + "&direction=A&frecce=" + frecce + "&onlyRegional=false";
+    QString url = "https://www.lefrecce.it/msite/api/solutions?origin=" + da + "&destination=" + a + "&arflag=A&adate=" + t.toString("dd/MM/yyyy") + "&atime=" + t.toString("h") + "&adultno=" + adulti + "&childno=" + bambini + "&direction=A&onlyRegional=false";
+    if(frecce == "true")
+        url += "&frecce=true";
+
     ArtifactRequest * request = new ArtifactRequest(m_qnam, this);
     m_openRequests++;
 
@@ -65,9 +68,12 @@ void TrainRequest::onResponse(const QString &info, bool success, int i)
 {
     ArtifactRequest *request = qobject_cast<ArtifactRequest*>(sender());
 
-    if (success) {
+     if (success) {
         parse(info);
-        startAsyncLoad();
+        if(m_model->size())
+            startAsyncLoad();
+        else
+            emit badResponse("Non esistono soluzioni per il viaggio cercato");
     } else {    //potrebbe esserci un errore http o la risposta è vuota
 
         if (info.isEmpty()) {
@@ -106,7 +112,7 @@ void TrainRequest::parse(const QString &response)
     QDateTime t_;
     foreach (QVariant artifact, soluzioni){
     QVariantMap soluzione = artifact.toMap();
-    qDebug()<<soluzione["departuretime"];
+    qDebug()<<"Trenitalia departureTime: "<<soluzione["departuretime"];
     t = QDateTime::fromMSecsSinceEpoch(soluzione["arrivaltime"].toLongLong());
     soluzione["orarioArrivo"] = t.toString("hh:mm");
     t_ = QDateTime::fromMSecsSinceEpoch(soluzione["departuretime"].toLongLong());
@@ -227,7 +233,7 @@ void TrainRequest::onSolutionDetailsComplete(const QString &info, bool success, 
     if (success) {
         JsonDataAccess dataAccess;
         QVariantList dati = dataAccess.loadFromBuffer(info).toList();
-        qDebug() << dati[0].toMap()["departuretime"];
+        qDebug() << "onSolutionDetailsComplete departureTime: "<< dati[0].toMap()["departuretime"];
         //int a = m_preloaded->size();
         //QVariantList indexPath = m_preloaded->size()+1;
         //if(m_model->data(indexPath)["traintype"]!="italo")

@@ -5,6 +5,8 @@
 #include <src/LocalDataManager.hpp>
 #include <src/StazioneStatusRequest.hpp>
 #include <src/ProfileRequest.hpp>
+#include <src/TicketRequest.hpp>
+#include <src/DetailedOffersRequest.hpp>
 
 #include <bb/cascades/AbstractPane>
 #include <bb/cascades/Application>
@@ -45,7 +47,7 @@ App::App(QObject *parent)   //where it all began
     , m_logged(false)
     , m_model(new GroupDataModel(QStringList() << "departuretime", this))
     //, m_stazioni(new GroupDataModel(QStringList() << "nomeLungo", this))
-    , m_stazioni(new GroupDataModel(QStringList() << "lastSelected" << "name", this))
+    , m_stazioni(new GroupDataModel(QStringList() << "distance" << "lastSelected" << "name", this))
     //, m_news(new GroupDataModel(QStringList() << "sortingData", this))
     , m_news(new GroupDataModel(QStringList() << "timestamp", this))
     , m_stazioneStatus(new GroupDataModel(QStringList()<<"orarioPartenza", this))
@@ -57,6 +59,7 @@ App::App(QObject *parent)   //where it all began
     , m_statusData(new QVariantMap())
     , m_profile(new QVariantMap())
     , m_preloaded(new QList<QVariantList>)
+    , m_trainsDetails(new QVariantList)
 {
     qmlRegisterType<LocalDataManager>("Storage.LocalDataManager", 1, 0, "LocalDataManager");
 
@@ -86,42 +89,42 @@ App::App(QObject *parent)   //where it all began
     //resetOffset();
 
     QString part, arr;
-        int state;
-        QDateTime t = QDateTime::currentDateTime();
-        QFile file(m_stazioniPath);
-                if(file.open(QIODevice::ReadOnly)){
-                    //return;
-                QDataStream stream(&file); // Open stream
-                stream >> state;
-                if (state){
-                    stream >> part;
-                    stream >> arr;
-                    QObject *partTxt = root->findChild<QObject*>("partTxt");
-                    QObject *arrTxt = root->findChild<QObject*>("arrTxt");
-                    QObject *main = root->findChild<QObject*>("main");
-                    if(t.toString("h")<"12"){
-                        partTxt->setProperty("text", part);
-                        arrTxt->setProperty("text", arr);
-                        main->setProperty("stazpart", part);
-                        main->setProperty("stazarr", arr);
-                    }
-                    else{
-                        partTxt->setProperty("text", arr);
-                        arrTxt->setProperty("text", part);
-                        main->setProperty("stazpart", arr);
-                        main->setProperty("stazarr", part);
-                    }
-                    main->setProperty("da_ready", true);
-                    main->setProperty("a_ready", true);
-                    m_pend = true;
-                    emit pendChanged();
-                }
-                else{
-                    m_pend = false;
-                    emit pendChanged();
-                }
-                file.close();
-               }
+    int state;
+    QDateTime t = QDateTime::currentDateTime();
+    QFile file(m_stazioniPath);
+    if(file.open(QIODevice::ReadOnly)){
+        //return;
+        QDataStream stream(&file); // Open stream
+        stream >> state;
+        if (state){
+            stream >> part;
+            stream >> arr;
+            QObject *partTxt = root->findChild<QObject*>("partTxt");
+            QObject *arrTxt = root->findChild<QObject*>("arrTxt");
+            QObject *main = root->findChild<QObject*>("main");
+            if(t.toString("h")<"12"){
+                partTxt->setProperty("text", part);
+                arrTxt->setProperty("text", arr);
+                main->setProperty("stazpart", part);
+                main->setProperty("stazarr", arr);
+            }
+            else{
+                partTxt->setProperty("text", arr);
+                arrTxt->setProperty("text", part);
+                main->setProperty("stazpart", arr);
+                main->setProperty("stazarr", part);
+            }
+            main->setProperty("da_ready", true);
+            main->setProperty("a_ready", true);
+            m_pend = true;
+            emit pendChanged();
+        }
+        else{
+            m_pend = false;
+            emit pendChanged();
+        }
+        file.close();
+    }
 
     if(!QFile::exists(m_dumpStazioniPath)){
         bool ok = QFile::copy( "./app/native/assets/dump_2_6.json", m_dumpStazioniPath);
@@ -511,7 +514,7 @@ void App::setSolutionDetailsModel(const QVariantList indexPath){
     m_solutionDetails->insertList(m_preloaded->at(indexPath[0].toInt()));
     emit showDetails();
     for(int i = 0; i< m_preloaded->size(); i++){
-        qDebug()<<m_preloaded->at(i)[0].toMap()["idsolution"];
+        //qDebug()<<m_preloaded->at(i)[0].toMap()["idsolution"];
        // qDebug()<<m_preloaded->at(i)[0].toMap()["departuretime"];
     }
 
@@ -582,8 +585,6 @@ bool App::pend() const {
     return m_pend;
 }
 
-
-
 void App::saveSetting(const QString &key, const QVariant &value){
     QSettings settings("simodax","rapidotreno");
     settings.setValue(key,value);
@@ -621,7 +622,7 @@ void App::requestAreaPers(QString user, QString pass){
 }
 
 void App::openTicket(const QString &id, const QString &tsid){
-    ProfileRequest* request = new ProfileRequest(m_qnam, m_profile, m_tickets, this);
+    TicketRequest* request = new TicketRequest(m_qnam, this);
 
     request->openTicket(id, tsid);
 }
@@ -632,4 +633,17 @@ bool App::loggedIn(){
     if(m_profile->value("logged") == true)
         return true;
     else return false;  //includes false and null value
+}
+
+void App::requestOffers(QString id, bool custom){
+    DetailedOffersRequest* request = new DetailedOffersRequest(m_qnam, m_trainsDetails);
+    connect(request, SIGNAL(finished()), this, SIGNAL(offersLoaded()), Qt::UniqueConnection);
+    connect(request, SIGNAL(badResponse(QString)), this, SIGNAL(badResponse(QString)), Qt::UniqueConnection);
+
+    request->getDetails(id, custom);
+
+}
+
+QVariantList App::trainsDetails() const{
+    return *m_trainsDetails;
 }
