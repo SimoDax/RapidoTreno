@@ -27,10 +27,7 @@ void NewsRequest::getNews(){
     //requestNews->requestArtifactline("http://www.fsnews.it/fsn/Infomobilit%C3%A0");   //old url
     requestNews->requestArtifactline("http://www.rfi.it/cms/v/index.jsp?vgnextoid=77f26c31d5611510VgnVCM1000008916f90aRCRD");
 
-    //m_active = true;
-    //emit activeChanged();
 }
-
 
 void NewsRequest::onFSNewsComplete(const QString &info, bool success, int i){
     ArtifactRequest *request = qobject_cast<ArtifactRequest*>(sender());
@@ -43,23 +40,27 @@ void NewsRequest::onFSNewsComplete(const QString &info, bool success, int i){
                 //qDebug()<<info;
                 QStringList eng;
                 eng << "Jan" << "Feb" << "Mar" << "Apr" << "May" << "Jun" << "Jul" << "Aug" << "Sep" << "Oct" << "Nov" << "Dec";
-                //ita << "Gen" << "Feb" << "Mar" << "Apr" << "Mag" << "Giu" << "Lug" << "Ago" << "Set" << "Ott" << "Nov" << "Dic";
                 XmlDataAccess dataAccess;
                 QVariantMap news = dataAccess.loadFromBuffer(info).toMap();
-                //qDebug()<<news.keys();
+
                 foreach(const QVariant &news_, news["channel"].toMap()["item"].toList()){
                     QVariantMap _news_ = news_.toMap();
                     _news_["link"] = _news_["link"].toString().left(_news_["link"].toString().indexOf(" "));
-                    _news_["pubDateEng"] = _news_["pubDate"];
+
+                    //convert date in italian to parse it
+                    _news_["pubDateEng"] = _news_["pubDate"];       //js stll needs the english date
                     for(int i =0; i<12; i++){
                         _news_["pubDate"]=_news_["pubDate"].toString().replace(eng[i], QDate::shortMonthName(i+1));
                     }
                     QDateTime t = QDateTime::fromString(_news_["pubDate"].toString().mid(5), "dd MMM yyyy hh:mm:ss 'GMT'");
+
+                    //add timestamp field to order news list
                     _news_["timestamp"] = QString::number(t.toMSecsSinceEpoch());
                     //qDebug()<<_news_["pubDate"].toString().mid(5);
                     //qDebug()<<_news_["link"].toString().indexOf(" ");
                     m_news->insert(_news_);
                 }
+
                 /*  old url code
                 QString _info = info.section("[{", 1, 1);
                 _info = _info.section("}]", 0, 0);
@@ -106,7 +107,6 @@ void NewsRequest::onFSNewsComplete(const QString &info, bool success, int i){
             } else {
                 emit badResponse(info);
             }
-            //m_active = false;
             request->deleteLater();
             this->deleteLater();
 }

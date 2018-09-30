@@ -38,8 +38,7 @@ bool lessThan(const QVariantMap &i, const QVariantMap &j)
     return i["distance"].toDouble() < j["distance"].toDouble();
 }
 
-LocalDataManager::LocalDataManager(QObject *parent) :
-        QObject(parent)
+LocalDataManager::LocalDataManager(QObject *parent) : QObject(parent)
 {
     m_stazioni = new GroupDataModel(QStringList() << "lastSelected" << "nameOrd", this);
     m_stazioni->setGrouping(ItemGrouping::None);
@@ -81,7 +80,7 @@ else if (iniz.length() > 1) {
 }
 }
 
-void LocalDataManager::load(QString iniz)
+void LocalDataManager::load(QString iniz)   //only used by StazioneRicerca.qml
 {
     m_stazioni->clear();
 
@@ -92,19 +91,19 @@ void LocalDataManager::load(QString iniz)
         readJSON(m_dumpCodiciPath);
 
     foreach (QVariant stazione, m_list){
-    QVariantMap staz=stazione.toMap();
-    if(staz["name"].toString().contains(iniz, Qt::CaseInsensitive)) {
-        staz["name"]=staz["name"].toString().toUpper();
-        m_stazioni->insert(staz);
+        QVariantMap staz=stazione.toMap();
+        if(staz["name"].toString().contains(iniz, Qt::CaseInsensitive)) {
+            staz["name"]=staz["name"].toString().toUpper();
+            m_stazioni->insert(staz);
+        }
     }
-}
 }
 
 void LocalDataManager::loadNearest()
 {
-    if (m_coord.isEmpty())
-        readJSON(m_dumpViaggiatrenoPath);
-    m_stazioni->clear();
+    //if (m_coord.isEmpty())
+    //    readJSON(m_dumpViaggiatrenoPath);
+    //m_stazioni->clear();
 
     QGeoPositionInfoSource *src = QGeoPositionInfoSource::createDefaultSource(this);
     src->setProperty("canRunInBackground", true);
@@ -141,7 +140,7 @@ void LocalDataManager::onDialogFinished(bb::system::SystemUiResult::Type result)
         request.setAction("bb.action.OPEN");
         request.setMimeType("text/html");
         request.setUri("settings://location");
-        request.setTarget("sys.settings.target");
+        request.setTarget("sys.settings.card");
         InvokeTargetReply *reply = invokeManager.invoke(request);
         if (reply)
             reply->deleteLater();    //i don't give a flying duck if invocation fails, i can't do anything different
@@ -177,6 +176,8 @@ void LocalDataManager::onGPSFix(const QGeoPositionInfo &fix)
         QList<QVariantMap> stazioni;
         QVariantMap stazione;
 
+        //NOTE: I'm not reordering m_list just by throwing it into a qSort because it has 3000 entries, so:
+
         for (int i = 0; i < MAX_NEAREST_STATIONS; i++) {    //pretend the first stations are the closest..
             stazione = m_list[i].toMap();
             stazione["distance"] = getDistance(gps.latitude(), gps.longitude(), stazione["lat"].toDouble(), stazione["lon"].toDouble());
@@ -193,27 +194,27 @@ void LocalDataManager::onGPSFix(const QGeoPositionInfo &fix)
                 stazioni.removeLast();      //remove farthest to keep MAX_NEAREST_STATIONS size
             }
         }
-        m_list.clear();
-        for (int i = 0; i < stazioni.size(); i++)
-            m_list.append(stazioni[i]);
-        //emit nearestLoaded();
-        SystemListDialog* m_listdialog;
-        m_listdialog = new SystemListDialog("Annulla");
+
+        m_coord.clear();
+        SystemListDialog* m_listdialog = new SystemListDialog("Annulla");
         //m_listdialog->setTitle("Seleziona stazione");
         m_listdialog->setBody("Seleziona stazione");
         m_listdialog->setDismissOnSelection(true);
 
-        for (int i = 0; i < m_list.size(); i++) {
-            stazione = stazione = m_list[i].toMap();
+        for (int i = 0; i < stazioni.size(); i++){  //insert nearest stations into the list dialog
+            stazione = stazioni[i];
             QGeoCoordinate current(stazione["lat"].toDouble(), stazione["lon"].toDouble());
             m_listdialog->appendItem(stazione["name"].toString() + " (" + QString::number(gps.distanceTo(current)/1000, 'f', 1) + " km)");
+            m_coord.append(stazioni[i]);    //save a copy of the list for later
         }
+        //emit nearestLoaded();
+
         bool success = connect(m_listdialog, SIGNAL(finished(bb::system::SystemUiResult::Type)), this, SLOT(onStationsDialogFinished(bb::system::SystemUiResult::Type)));
 
         if (success)
             m_listdialog->exec();
         else
-            m_listdialog->deleteLater();	//se non riesce a connettersi si blocca la funzione..
+            m_listdialog->deleteLater();	//fixme: se non riesce a connettersi si blocca la funzione..
     }
     src->deleteLater();
 }
@@ -223,7 +224,7 @@ void LocalDataManager::onStationsDialogFinished(bb::system::SystemUiResult::Type
     SystemListDialog *m_dialog = qobject_cast<SystemListDialog*>(sender());
     if (result == SystemUiResult::ItemSelection) {
         int index = m_dialog->selectedIndices().value(0);
-        emit nearestSelected(m_list.at(index).toMap()["name"].toString());
+        emit nearestSelected(m_coord.at(index).toMap()["name"].toString());
     }
     else
         emit nearestSelected(QString::null);

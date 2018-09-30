@@ -7,7 +7,7 @@
 
 #include "TrainRequest.hpp"
 #include "ArtifactRequest.hpp"
-#include "ItaloRequest.hpp"
+#include "ItaloApiRequest.hpp"
 
 #include <bb/data/JsonDataAccess>
 #include <QDateTime>
@@ -16,7 +16,7 @@
 
 using namespace bb::data;
 
-TrainRequest::TrainRequest(QNetworkAccessManager * qnamPtr, bb::cascades::GroupDataModel* modelPtr, QList<QVariantList>* preloadedPtr, bool italo, QObject *parent = NULL) :
+TrainRequest::TrainRequest(QNetworkAccessManager * qnamPtr, bb::cascades::GroupDataModel* modelPtr, QVector<QVariantList>* preloadedPtr, bool italo, QObject *parent = NULL) :
         QObject(parent), m_openRequests(0)
 {
     m_model = modelPtr;
@@ -55,7 +55,7 @@ void TrainRequest::getSolutions(const QString &da, const QString &a, const QDate
         if (indexDa == -1 || indexA == -1)
             return;
 
-        ItaloRequest * italoRequest = new ItaloRequest(m_qnam, m_model, m_preloaded, this);
+        ItaloApiRequest * italoRequest = new ItaloApiRequest(m_qnam, m_model, this);
         m_openRequests++;
         connect(italoRequest, SIGNAL(finished()), this, SLOT(startAsyncLoad()), Qt::UniqueConnection);
 
@@ -76,7 +76,7 @@ void TrainRequest::onResponse(const QString &info, bool success, int i)
             emit badResponse("Non esistono soluzioni per il viaggio cercato");
     } else {    //potrebbe esserci un errore http o la risposta è vuota
 
-        if (info.isEmpty()) {
+        if (info.isEmpty() || info.contains("500")) {   //no response or error 500
 
             emit badResponse("Richiesta non valida. Riprovare con altri dati");
             this->deleteLater();
@@ -205,15 +205,18 @@ void TrainRequest::startAsyncLoad()
     list += m_model->toListOfMaps();
 
     //disconnect(m_request, SIGNAL(complete(QString, bool)), this, 0);
+    qDebug()<<"tl list size: "<<list.size();
+    m_preloaded->resize(list.size());
 
     for (int i = 0; i < list.size(); i++) {
         QString id = list[i].value("idsolution", "italo").toString();
         if (id != "italo") {
             ArtifactRequest * request = new ArtifactRequest(m_qnam, this, i);
-            bool ok = connect(request, SIGNAL(complete(QString, bool, int)), this, SLOT(onSolutionDetailsComplete(QString, bool, int)), Qt::UniqueConnection);
+            connect(request, SIGNAL(complete(QString, bool, int)), this, SLOT(onSolutionDetailsComplete(QString, bool, int)), Qt::UniqueConnection);
             m_openRequests++;
             request->requestArtifactline("https://www.lefrecce.it/msite/api/solutions/" + id + "/info");
-        } else {    //we already have all the details
+        }
+        else {    //we already have all the details from the first request
             QVariantList italo;
             list[i]["departurestation"] = list[i]["origin"];
             list[i]["arrivalstation"] = list[i]["destination"];
@@ -221,7 +224,8 @@ void TrainRequest::startAsyncLoad()
             italo << list[i];
             //italo[0].toMap()["departurestation"] = list[i]["origin"];
             //italo[0].toMap()["arrivalstation"] = list[i]["destination"];
-            m_preloaded->insert(i, italo);
+            (*m_preloaded)[i] = italo;
+            qDebug()<<"italo solution inserted at index "<<i;
         }
     }
 }
@@ -237,7 +241,7 @@ void TrainRequest::onSolutionDetailsComplete(const QString &info, bool success, 
         //int a = m_preloaded->size();
         //QVariantList indexPath = m_preloaded->size()+1;
         //if(m_model->data(indexPath)["traintype"]!="italo")
-        m_preloaded->insert(i, dati);
+        (*m_preloaded)[i] = dati;
 
         //emit statusDataLoaded();
     } else {
@@ -253,7 +257,7 @@ void TrainRequest::onSolutionDetailsComplete(const QString &info, bool success, 
     //m_active = false;
     m_openRequests--;
     if (m_openRequests == 0) {
-        qSort(m_preloaded->begin(), m_preloaded->end(), orderByTime);
+        //qSort(m_preloaded->begin(), m_preloaded->end(), orderByTime); //not needed anymore with index-based insertion
         emit finished();
         this->deleteLater();    //i don't wanna live in this world anymore :(
     }
@@ -261,6 +265,7 @@ void TrainRequest::onSolutionDetailsComplete(const QString &info, bool success, 
 
 }
 
+/*
 bool orderByTime(QVariantList l1, QVariantList l2)
 {
     if (l1[0].toMap().value("idsolution", "italo") == "italo" || l2[0].toMap().value("idsolution", "italo") == "italo")
@@ -268,3 +273,4 @@ bool orderByTime(QVariantList l1, QVariantList l2)
 
     return l1[0].toMap()["idsolution"].toString() < l2[0].toMap()["idsolution"].toString();
 }
+*/

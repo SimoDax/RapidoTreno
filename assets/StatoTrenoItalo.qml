@@ -167,7 +167,7 @@ Page {
             onTriggered: {
                 navigationPane.pop();
                 wait.open();
-                _artifactline.requestStatusData(numeroTreno);
+                _artifactline.requestStatusDataItalo(numeroTreno);
             }
         }
     ]

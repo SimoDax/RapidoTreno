@@ -4,17 +4,14 @@ import bb.system 1.2
 NavigationPane {
     id: navigationPane
     onPopTransitionEnded: page.destroy()
-    function triggerSearch(num) {
-        numtreno.text = num;
-        cerca.triggered();
-    }
+
     Page {
-        property variant num
         id: statoricerca
+        
         function pushPane() {
             //_artifactline.salvaRicerca(numtreno.text.trim());
             wait.close();
-            if (parseInt(numtreno.text) > 9900 && parseInt(numtreno.text) < 9999){
+            if ((parseInt(numtreno.text) > 9900 && parseInt(numtreno.text) < 9999) || (parseInt(numtreno.text) > 8900 && parseInt(numtreno.text) < 8999)){
                 var page = statoTrenoPageItalo.createObject();
                 navigationPane.push(page);
             }
@@ -25,17 +22,21 @@ NavigationPane {
             page.numeroTreno = numtreno.text.trim();
             _artifactline.salvaRicerca(numtreno.text.trim());
         }
+        
         function errorDialog(errorMessage) {
             wait.close();
             myQmlToast.body = errorMessage;
             myQmlToast.show();
         }
+        
         function aborted() {
             wait.close();
         }
+        
         function setDataModel() {
             ricerche.dataModel = _artifactline.ricerche;
         }
+        
         onCreationCompleted: {
             _artifactline.statusDataLoaded.connect(pushPane);
             _artifactline.badResponse.connect(errorDialog);
@@ -43,6 +44,7 @@ NavigationPane {
             //_artifactline.ricercheLoaded.connect(setDataModel);
             _artifactline.caricaRicerche();
         }
+        
         Container {
             //background: Color.create("#111111")
             Titolo {
@@ -186,9 +188,9 @@ NavigationPane {
 
                 onTriggered: {
                     if (numtreno.text != "") {
-                        statoricerca.num = numtreno.text.trim();
+                        //statoricerca.num = numtreno.text.trim();
 
-                        if (parseInt(numtreno.text) > 9900 && parseInt(numtreno.text) < 9999)
+                        if (parseInt(numtreno.text) > 8900 && parseInt(numtreno.text) < 9999)
                             _artifactline.requestStatusDataItalo(numtreno.text.trim());
                         else
                             _artifactline.requestStatusData(numtreno.text.trim());

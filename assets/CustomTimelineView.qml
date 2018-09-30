@@ -21,7 +21,6 @@ Page {
     objectName: "tl"
     property variant dati
     property variant index
-    property int offset: 0
     
     function displayWait(){
         wait.open();
@@ -50,7 +49,7 @@ Page {
         //tl.destroyed.connect(_artifactline.clearPreloaded);
         //_artifactline.displayWait.connect(wait.open);
         _artifactline.removeWait.connect(closewait);
-        //_artifactline.showDetails.connect(pushPane);
+        _artifactline.showDetails.connect(pushPane);
         //_artifactline.startAsyncLoad();
         _artifactline.badResponse.connect(closewait);
     }
@@ -181,7 +180,7 @@ Page {
                                  imageSource: "asset:///images/cart.amd"
                                 preferredHeight: ui.du(6.0)
                                 preferredWidth: ui.du(6.0)
-                                scalingMethod: ScalingMethod.Fill
+                                //scalingMethod: ScalingMethod.Fill
                                 horizontalAlignment: HorizontalAlignment.Center
                                 verticalAlignment: VerticalAlignment.Center 
                                 filterColor: ListItemData.saleable ? Color.create("#006263") : Color.create("#FF0000")
@@ -359,11 +358,11 @@ Page {
             ]
 
             onTriggered: {
-                clearSelection();
-                select(indexPath);
+                clearSelection()
+                select(indexPath)
                 tl.dati = dataModel.data(indexPath)
-                _artifactline.setSolutionDetailsModel(indexPath);
                 tl.index = indexPath;
+                _artifactline.setSolutionDetailsModel(indexPath)
                 //pushPane();        GUAI A TE CHRISTIANAIRTE, CHRISTIANAIRTE GUAI A TE
             }
         }
@@ -377,13 +376,13 @@ Page {
             imageSource: "asset:///images/ic_reply.png"
             enabled: {
                 var d = Utils.parseIsoDatetime(main.err.text);
-                return d.getHours()+offset > 0 && !wait.opened;
+                return d.getHours() > 0 && !wait.opened;
             }
             onTriggered: {
-                offset--;
                 var d = Utils.parseIsoDatetime(main.err.text);
-                d.setHours(d.getHours()-(d.getTimezoneOffset()/60)+offset);
-                _artifactline.requestArtifact(main.stazpart, main.stazarr, d.toISOString(), main.adulti.selectedOption.text, main.bambini.selectedOption.text, av.checked?"true":"false", main.italo.checked, true);
+                d.setHours(d.getHours()-1);
+                main.dtpicker.value = d
+                _artifactline.requestArtifact(main.stazpart, main.stazarr, main.err.text, main.adulti.selectedOption.text, main.bambini.selectedOption.text, av.checked?"true":"false", main.italo.checked, true);
                 wait.open();
             }
         },
@@ -395,14 +394,15 @@ Page {
             //enabled: _artifactline.getOffset() <= 23
             enabled: {
                 var d = Utils.parseIsoDatetime(main.err.text);
-                return d.getHours()+offset < 23 && !wait.opened;
+                return d.getHours() < 23 && !wait.opened;
             }
             imageSource: "asset:///images/ic_forward.png"
             onTriggered: {
-                offset++;
                 var d = Utils.parseIsoDatetime(main.err.text);
-                d.setHours(d.getHours()-(d.getTimezoneOffset()/60)+offset);
-                _artifactline.requestArtifact(main.stazpart, main.stazarr, d.toISOString(), main.adulti.selectedOption.text, main.bambini.selectedOption.text, av.checked?"true":"false", main.italo.checked, true);
+                d.setHours(d.getHours()+1);
+                main.dtpicker.value = d
+                _artifactline.requestArtifact(main.stazpart, main.stazarr, main.err.text, main.adulti.selectedOption.text, main.bambini.selectedOption.text, av.checked?"true":"false", main.italo.checked, true);
+                //_artifactline.requestArtifact(main.stazpart, main.stazarr, d.toISOString(), main.adulti.selectedOption.text, main.bambini.selectedOption.text, av.checked ? "true" : "false", main.italo.checked, true);
                 wait.open();
             }
         }

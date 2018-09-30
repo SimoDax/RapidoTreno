@@ -29,12 +29,14 @@ Container {
         Label {
                 id: nome
                 //text: nome_txt
-                textStyle.fontSize: FontSize.Medium
+                //textStyle.fontSize: FontSize.Medium
                 textStyle.fontWeight: FontWeight.W500
                 textStyle.color: Color.create(color)
                 verticalAlignment: VerticalAlignment.Fill
                 horizontalAlignment: HorizontalAlignment.Left
-            }
+            textStyle.fontSizeValue: 7.0
+            textStyle.fontSize: FontSize.PointValue
+        }
         }
         
         Container {
@@ -42,15 +44,18 @@ Container {
                 spaceQuota: 4.0
             
             }
-            Label {
+        verticalAlignment: VerticalAlignment.Center
+        Label {
                 id: dest
                 //text: dest_txt
                 textStyle.color: Color.create(color)
                 textStyle.fontSize: FontSize.PointValue
                 horizontalAlignment: horizontalAlignment.Left
-                textStyle.fontSizeValue: 6.5
+                verticalAlignment: VerticalAlignment.Center
+            textStyle.fontSizeValue: 6.5
             multiline: true
             autoSize.maxLineCount: 3
+
         }
         }
         
@@ -63,12 +68,14 @@ Container {
         Label {
                 id: orario
                 //text: orario_txt
-                textStyle.fontSize: FontSize.Medium
+                //textStyle.fontSize: FontSize.Medium
                 textStyle.fontWeight: FontWeight.W500
                 textStyle.color: Color.create(color)
                 horizontalAlignment: HorizontalAlignment.Left
                 verticalAlignment: VerticalAlignment.Fill
             textStyle.textAlign: TextAlign.Left
+            textStyle.fontSizeValue: 7.0
+            textStyle.fontSize: FontSize.PointValue
         }
         }
         
@@ -81,13 +88,15 @@ Container {
         Label {
                 id: binario
                 //text: binario_txt
-                textStyle.fontSize: FontSize.Medium
+                //textStyle.fontSize: FontSize.Medium
                 textStyle.textAlign: TextAlign.Center
             //textStyle.fontWeight: FontWeight.W500
                 textStyle.color: Color.create(color)
                 horizontalAlignment: HorizontalAlignment.Fill
                 verticalAlignment: VerticalAlignment.Fill
-            }
+            textStyle.fontSizeValue: 7.0
+            textStyle.fontSize: FontSize.PointValue
+        }
         }
         
         Container{
@@ -133,11 +142,13 @@ Container {
                 Label {
                     id: ritardo
                     //text: ritardo_txt
-                    textStyle.fontSize: FontSize.Medium
+                    //textStyle.fontSize: FontSize.Medium
                     textStyle.fontWeight: FontWeight.W500
                     textStyle.color: Color.create(color)
                     horizontalAlignment: HorizontalAlignment.Center
                     verticalAlignment: VerticalAlignment.Center
+                textStyle.fontSizeValue: 7.0
+                textStyle.fontSize: FontSize.PointValue
                 leftMargin: ui.du(1.0)
                 rightMargin: ui.du(0.0)
             }
@@ -152,5 +163,6 @@ Container {
             }
         ]*/
     topPadding: ui.du(1.5)
+    verticalAlignment: VerticalAlignment.Fill
 }
 

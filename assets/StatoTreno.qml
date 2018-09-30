@@ -84,7 +84,7 @@ Page {
                                 return "Il treno è stato soppresso"
                             } else if (tipoTreno == "DV" && provvedimento == 3)
                                 return "Il treno è stato deviato";
-                            else if ((tipoTreno == "PP" || tipoTreno == "SI" || tipoTreno == "SF") && (provvedimento == 0 || provvedimento == 2))
+                            else if ((tipoTreno == "PP" || tipoTreno == "SI" || tipoTreno == "SF" || tipoTreno == "RF") && (provvedimento == 0 || provvedimento == 2))
                                 return "Il treno è stato parzialmente soppresso"
                         }
                         //done();

@@ -16,7 +16,7 @@ class TrainRequest: public QObject
     Q_OBJECT
 
 public:
-    TrainRequest(QNetworkAccessManager* qnamPtr, bb::cascades::GroupDataModel* modelPtr, QList<QVariantList>* preloadedPtr, bool italo, QObject *parent);
+    TrainRequest(QNetworkAccessManager* qnamPtr, bb::cascades::GroupDataModel* modelPtr, QVector<QVariantList>* preloadedPtr, bool italo, QObject *parent);
 
     void getSolutions(const QString &da, const QString &a, const QDateTime &t, const QString &adulti, const QString &bambini, const QString &frecce, bool italo);
 
@@ -41,7 +41,7 @@ private:
 private:
 
     bb::cascades::GroupDataModel* m_model;
-    QList<QVariantList>* m_preloaded;
+    QVector<QVariantList>* m_preloaded;
     QNetworkAccessManager * m_qnam;
     int m_openRequests;
 };

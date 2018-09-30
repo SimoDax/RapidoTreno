@@ -15,6 +15,8 @@ public:
     void requestArtifactline(const QString &url);
     void download(const QString &url);
     void post(const QString &url, const QByteArray &postData);
+    void postJson(const QString &url, const QByteArray &postData);
+
 
 Q_SIGNALS:
 

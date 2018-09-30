@@ -12,6 +12,13 @@ NavigationPane {
         }
         page.destroy()
     }
+    
+    onPushTransitionEnded: {
+        if (page.objectName == "tl") {
+            stazlist.save(main.stazpart, main.stazarr); //qui non rallenta l'ui
+        }
+
+    }
 
     Page {
         id: main
@@ -570,7 +577,7 @@ NavigationPane {
                     wait.open();
                     main.data = Utils.getDateFromPicker(dtpicker);
                     _artifactline.requestArtifact(main.stazpart, main.stazarr, err.text, adulti.selectedOption.text, bambini.selectedOption.text, av.checked ? "true" : "false", italo.checked, false);
-                    stazlist.save(main.stazpart, main.stazarr);
+                    //stazlist.save(main.stazpart, main.stazarr);
                 }
 
                 attachedObjects: ComponentDefinition {

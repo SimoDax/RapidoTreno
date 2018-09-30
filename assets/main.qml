@@ -21,12 +21,6 @@ TabbedPane {
     id: tabbedPane
     showTabsOnActionBar: false
 
-    function fromStationToTrain(num) {
-        activeTab = statoTreno;
-        var nav = statoDelegate.object;
-        nav.triggerSearch(num);
-    }
-
     Tab {
         title: "Cerca soluzione"
         imageSource: "asset:///images/train_icon.png"
@@ -76,6 +70,15 @@ TabbedPane {
         delegateActivationPolicy: TabDelegateActivationPolicy.ActivatedWhileSelected
     }
 
+    Tab {
+        title: "Dona"
+        imageSource: "asset:///images/heart.png"
+        onTriggered: {
+            _pay.trigger("bb.action.OPEN")
+        }
+
+    }
+
     Menu.definition: MenuDefinition {
         actions: [
             ActionItem {
@@ -88,7 +91,7 @@ TabbedPane {
                             if (Application.applicationName == "RapidoTreno Free")
                                 Application.applicationName + " " + Application.applicationVersion + "\n\nSe l'app ti soddisfa per favore considera l'acquisto della versione a pagamento per supportare lo sviluppatore e ottenere il supporto per italo :)\n\nUna copia del codice sorgente di quest'app è pubblicamente consultabile su https://github.com/SimoDax/RapidoTreno";
                             else
-                                Application.applicationName + " " + Application.applicationVersion + "\n\nGrazie per aver scelto di supportare lo sviluppatore :)\n\nPer segnalare bug scrivere a: mailto:s.dassi.pub@gmail.com con oggetto [RAPIDOTRENO]<descrizione bug>\n\nUna copia del codice sorgente di quest'app è pubblicamente consultabile su https://github.com/SimoDax/RapidoTreno"
+                                Application.applicationName + " " + Application.applicationVersion + "\n\nGrazie per aver scelto di supportare lo sviluppatore :)\n\nPer segnalare bug scrivere a: s.dassi.pub@gmail.com con oggetto [RAPIDOTRENO]<descrizione bug>\n\nUna copia del codice sorgente di quest'app è pubblicamente consultabile su https://github.com/SimoDax/RapidoTreno"
                         }
                         onFinished: {
                             if (result == SystemUiResult.ConfirmButtonSelection && Application.applicationName == "RapidoTreno Free")
@@ -108,8 +111,9 @@ TabbedPane {
                 }
             },
             ActionItem {
+                id: payAction
                 title: "Dona"
-                imageSource: "asset:///images/coins.png"
+                imageSource: "asset:///images/heart.png"
                 onTriggered: {
                     _pay.trigger("bb.action.OPEN")
                 }

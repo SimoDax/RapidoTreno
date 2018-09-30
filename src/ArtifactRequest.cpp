@@ -5,6 +5,7 @@
 #include <QNetworkRequest>
 #include <QUrl>
 #include <QDebug>
+#include <QFile>
 
 /*
  * Default constructor
@@ -75,12 +76,50 @@ void ArtifactRequest::post(const QString &url, const QByteArray &postData)
     qDebug()<<url_.toEncoded(QUrl::None);
 
 
-    QNetworkRequest italoRequest(url_);
+    QNetworkRequest postRequest(url_);
         //italoRequest.setRawHeader("User-Agent", "runscope/0.1");      //i'm not a phone, i swear
-    italoRequest.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
+    postRequest.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
 
 
-    QNetworkReply* reply = m_networkAccessManager->post(italoRequest, postData);
+    QNetworkReply* reply = m_networkAccessManager->post(postRequest, postData);
+
+    bool ok = connect(reply, SIGNAL(finished()), this, SLOT(onPostReply()));
+    Q_ASSERT(ok);
+    Q_UNUSED(ok);
+
+}
+
+void ArtifactRequest::postJson(const QString &url, const QByteArray &postData)
+{
+    const QString queryUri = QString::fromLatin1("%1").arg(url);
+
+    QUrl url_;
+    url_.setEncodedUrl(url.toUtf8());
+
+    qDebug()<<url_.toEncoded(QUrl::None);
+
+
+    QNetworkRequest postRequest(url_);
+
+    postRequest.setRawHeader("User-Agent", "android-async-http/1.4.4 (http://loopj.com/android-async-http)");      //i'm not a blackberry, i swear
+    postRequest.setRawHeader("Content-Type", "application/json");
+    postRequest.setRawHeader("Accept-Encoding", "gzip");
+    postRequest.setRawHeader("Connection", "Keep-Alive");
+
+
+#ifdef QT_DEBUG     //only in debug builds
+
+    QFile file("./data/rawHeaders.txt");
+        if(!file.open(QIODevice::WriteOnly))
+            return;
+        QTextStream stream(&file); // Open stream
+        foreach(QByteArray header, postRequest.rawHeaderList())
+            stream << header;
+        file.close();
+
+#endif
+
+    QNetworkReply* reply = m_networkAccessManager->post(postRequest, postData);
 
     bool ok = connect(reply, SIGNAL(finished()), this, SLOT(onPostReply()));
     Q_ASSERT(ok);
@@ -97,7 +136,8 @@ void ArtifactRequest::onPostReply(){
     if (reply) {
         if (reply->error() == QNetworkReply::NoError) {
             const int available = reply->bytesAvailable();
-            success = true;
+            success = true;     //success is set before checking if there is data in the answer: this class just handles http connection faliures,
+                                //invalid data is managed by the upper classes
             if (available > 0) {
                 const QByteArray buffer = reply->readAll();
                 response = QString::fromUtf8(buffer);
@@ -111,16 +151,58 @@ void ArtifactRequest::onPostReply(){
 
 
     qDebug()<<"success: "<<success;
-       if (success) {
-           if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) != 302){
-               //m_openRequests--;
-               emit complete(response, success, m_i);
-           }
-           else emit moved();
+       //if (success) {
+       if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) != 302){
+           //m_openRequests--;
+           emit complete(response, success, m_i);
        }
+       else emit moved();
+       //}
        reply->deleteLater();
     }
 }
+
+/*
+void ArtifactRequest::onPostReplyWithCookies(){
+
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+
+    //QList<QNetworkCookie> cookies;
+    QString response;
+    bool success = false;
+    if (reply) {
+        if (reply->error() == QNetworkReply::NoError) {
+            const int available = reply->bytesAvailable();
+            success = true;     //success is set before checking if there is data in the answer: this class just handles http connection faliures,
+                                //invalid data is managed by the upper classes
+            if (available > 0) {
+                const QByteArray buffer = reply->readAll();
+                response = QString::fromUtf8(buffer);
+                //success = true;
+            }
+
+            //QVariant cookies = (reply->header(QNetworkRequest::SetCookieHeader));
+        } else {
+            response =  tr("Error: %1 status: %2").arg(reply->errorString(), reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toString());
+            qDebug()<<response;
+            qDebug()<<QString::fromUtf8(reply->readAll());
+        }
+        //qDebug()<< "Page was loaded from cache: " <<reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute);
+
+
+    qDebug()<<"success: "<<success;
+       //if (success) {
+       if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) != 302){
+           //m_openRequests--;
+           //emit completeWithCookies(response, success, m_i, cookies);
+           emit complete(response, success, m_i);
+       }
+       else emit moved();
+       //}
+       reply->deleteLater();
+    }
+}
+*/
 
 void ArtifactRequest::download(const QString &url)
 {

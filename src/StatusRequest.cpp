@@ -56,16 +56,29 @@ void StatusRequest::onNumeroTrenoComplete(const QString &info, bool success, int
                 Q_UNUSED(ok);
 
                 requestStatus->requestArtifactline("http://www.viaggiatreno.it/viaggiatrenonew/resteasy/viaggiatreno/andamentoTreno/" + numStaz[numStaz.size() - 1] + "/" + m_num);
-            } else if (numStaz.size() > 1) {
+            }
+            else if (numStaz.size() > 1) {
+
                 SystemListDialog* m_listdialog;
                 m_listdialog = new SystemListDialog("Annulla");
                 m_listdialog->setTitle("Seleziona treno interessato");
                 m_listdialog->setDismissOnSelection(true);
 
                 for (int i = 0; i < numStaz.size(); i++) {
-                    m_listdialog->appendItem(numStaz[i].split("|")[0].replace("-", "da"));
-                    QStringList _numStaz = numStaz[i].split("-");
-                    m_numStazList.append(_numStaz[_numStaz.size() - 1]);
+
+                    QString textPart = numStaz[i].split("|")[0];
+                    QString codePart = numStaz[i].split("|")[1];
+                    QString code = codePart.split("-")[1];
+
+                    if(!m_numStazList.contains(code)){
+
+                        QString text = textPart.section("-", 1);
+                        text.prepend(" da ");
+                        text.prepend(textPart.section("-", 0, 0));
+
+                        m_listdialog->appendItem(text);
+                        m_numStazList.append(code);
+                    }
                 }
                 bool success = connect(m_listdialog, SIGNAL(finished(bb::system::SystemUiResult::Type)), this, SLOT(onDialogFinished(bb::system::SystemUiResult::Type)));
 
@@ -121,7 +134,7 @@ void StatusRequest::parseStatusData(const QString& response)
     QVariantMap dati = dataAccess.loadFromBuffer(response).toMap();
     const QVariantList fermate = dati["fermate"].toList();
     dati["nFermate"] = fermate.size();
-    //int
+
     m_statusData->unite(dati);
 
 }
@@ -142,7 +155,7 @@ void StatusRequest::onDialogFinished(bb::system::SystemUiResult::Type result)
     } else {
         SystemListDialog *m_listdialog = qobject_cast<SystemListDialog*>(sender());
         m_listdialog->deleteLater();
-        emit abort();
+        emit badResponse("Ricerca annullata");
     }
 }
 

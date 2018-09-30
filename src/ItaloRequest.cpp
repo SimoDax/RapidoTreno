@@ -10,8 +10,6 @@
 
 #include <QtCore/QObject>
 
-//#define ITALO_DEBUG
-
 #define SEARCH_WINDOW 3
 
 ItaloRequest::ItaloRequest(QNetworkAccessManager * qnamPtr, bb::cascades::GroupDataModel* modelPtr, QList<QVariantList>* preloadedPtr, QObject *parent=NULL) : QObject(parent)
@@ -32,8 +30,8 @@ void ItaloRequest::getSolutions(const QString &da, const QString &a, const QDate
     QByteArray postData;
 
     postData.append("BookingRicercaRestylingBookingAcquistoRicercaView%24RadioButtonMarketStructure=OneWay&BookingRicercaRestylingBookingAcquistoRicercaView%24TextBoxMarketOrigin1="+da+"&BookingRicercaRestylingBookingAcquistoRicercaView%24TextBoxMarketDestination1="+a+"&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownListMarketDay1="+t.toString("dd")+"&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownListMarketMonth1="+t.toString("MM-yyyy")+"&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownDepartureTimeHoursBegin_1="+t.toString("hh")+"&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownDepartureTimeHoursEnd_1="+t2.toString("hh")+"&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownListPassengerType_ADT="+adulti+"&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownListPassengerType_SNR=0&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownListPassengerType_CHD="+bambini+"&BookingRicercaRestylingBookingAcquistoRicercaView%24InfantTextBox=0&promocode=&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownListSearchBy=columnView&BookingRicercaRestylingBookingAcquistoRicercaView%24DropDownListFareTypes=ST&__EVENTTARGET=BookingRicercaRestylingBookingAcquistoRicercaView%24ButtonSubmit&__EVENTARGUMENT=");
-    //qDebug()<<postData;
-#ifdef ITALO_DEBUG
+
+#ifdef QT_DEBUG     //only in debug builds
 
     QFile file("./data/postData.txt");
         if(!file.open(QIODevice::WriteOnly))
@@ -86,7 +84,7 @@ void ItaloRequest::onResponse(const QString &info, bool success, int i){
 void ItaloRequest::parse(const QString &response){
     //qDebug()<<response;
     //m_model->clear();
-#ifdef ITALO_DEBUG
+#ifdef QT_DEBUG
     QFile file("./data/italo.txt");
     if(!file.open(QIODevice::WriteOnly))
         return;

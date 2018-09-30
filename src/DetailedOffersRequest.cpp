@@ -8,6 +8,7 @@
 #include "DetailedOffersRequest.hpp"
 #include <src/ArtifactRequest.hpp>
 #include <bb/data/JsonDataAccess>
+#include <src/ItaloApiRequest.hpp>
 
 using namespace bb::data;
 
@@ -21,18 +22,31 @@ DetailedOffersRequest::DetailedOffersRequest(QNetworkAccessManager* qnam, QVaria
 
 void DetailedOffersRequest::getDetails(const QString& id, bool custom){
 
-    ArtifactRequest* request = new ArtifactRequest(m_qnam, this);
-    bool ok = connect(request, SIGNAL(complete(QString, bool, int)), this, SLOT(onResponse(QString, bool, int)), Qt::UniqueConnection);
-    if(ok)
-        request->requestArtifactline("https://www.lefrecce.it/msite/api/solutions/" + id +"/standardoffers");
+    m_trainsDetails->clear();
+
+    if(id.toInt() > 8900 && id.toInt() < 10000){
+        if(ItaloApiRequest::detailedOffers.contains(id)){
+            m_trainsDetails->append(ItaloApiRequest::detailedOffers.value(id));
+            emit finished();
+        }
+        else
+            emit badResponse("Impossibile recuperare i dettagli delle offerte");
+        this->deleteLater();
+    }
     else
-        request->deleteLater();
+    {
+        ArtifactRequest* request = new ArtifactRequest(m_qnam, this);
+        bool ok = connect(request, SIGNAL(complete(QString, bool, int)), this, SLOT(onResponse(QString, bool, int)), Qt::UniqueConnection);
+        if(ok)
+            request->requestArtifactline("https://www.lefrecce.it/msite/api/solutions/" + id +"/standardoffers");
+        else
+            request->deleteLater();
+    }
 }
 
 void DetailedOffersRequest::onResponse(const QString& info, bool success, int i){
     ArtifactRequest *request = qobject_cast<ArtifactRequest*>(sender());
 
-    m_trainsDetails->clear();
     if(success){
         if(!info.isEmpty() && !info.isNull()){
             JsonDataAccess dataAccess;

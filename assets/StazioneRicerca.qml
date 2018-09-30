@@ -3,7 +3,7 @@ import bb.system 1.2
 import Storage.LocalDataManager 1.0
 
 NavigationPane {
-    id: navPane
+    id: navigationPane
     onPopTransitionEnded: page.destroy()
     signal tapped()
     Page {
@@ -15,31 +15,26 @@ NavigationPane {
         id: stazionericerca
 
         function pushPane() {
-            //_artifactline.salvaRicerca(numtreno.text.trim());
-            wait.close();
-            navPane.push(statoTrenoPage.createObject());
-            //_artifactline.salvaRicerca(numtreno.text.trim());
+            wait.close()
+            navigationPane.push(statoTrenoPage.createObject())
         }
+        
         function errorDialog(errorMessage) {
-            wait.close();
-            myQmlToast.body = errorMessage;
-            myQmlToast.show();
+            wait.close()
+            myQmlToast.body = errorMessage
+            myQmlToast.show()
         }
+        
         function aborted() {
-            wait.close();
+            wait.close()
         }
-        function setDataModel() {
-            ricerche.dataModel = _artifactline.ricerche;
-        }
-        onCreationCompleted: {
-            _artifactline.statusDataLoaded.connect(pushPane);
-            _artifactline.badResponse.connect(errorDialog);
-            _artifactline.abort.connect(aborted);
-            //_artifactline.ricercheLoaded.connect(setDataModel);
-            _artifactline.caricaRicerche();
 
-            //console.log(parent);
+        onCreationCompleted: {
+            _artifactline.stationDataLoaded.connect(pushPane)
+            _artifactline.badResponse.connect(errorDialog)
+            //_artifactline.abort.connect(aborted);
         }
+        
         Container {
             Titolo {
                 text: "Cerca Stazione"

@@ -30,8 +30,10 @@ Container {
                 leftMargin: ui.du(2.2)
                 ImageView {
                     function getSource() {
-                        if (_artifactline.profileData.nextcftype == "Oro")
+                        if (_artifactline.profileData.nextcftype == "Argento")
                             return "asset:///images/img_cartafr_base_red.gif";
+                        else if (_artifactline.profileData.nextcftype == "Oro")
+                            return "asset:///images/img_cartafr_argento.png";
                         else if (_artifactline.profileData.nextcftype == "Platino")
                             return "asset:///images/img_cartafr_oro.gif";
                         else

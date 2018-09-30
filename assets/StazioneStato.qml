@@ -1,6 +1,36 @@
 import bb.cascades 1.4
 
 Page {
+    property string searchedTrain
+    
+    function pushPane() {
+        wait.close();
+        if (parseInt(searchedTrain) > 9900 && parseInt(searchedTrain) < 9999) {
+            var page = statoTrenoPageItalo.createObject()
+            navigationPane.push(page)
+        } else {
+            var page = statoTrenoPage.createObject()
+            navigationPane.push(page)
+        }
+        page.numeroTreno = searchedTrain     //save it for the refresh button
+        _artifactline.salvaRicerca(searchedTrain)
+    }
+
+    attachedObjects: [
+        ComponentDefinition {
+            id: statoTrenoPage
+            source: "StatoTreno.qml"
+        },
+        ComponentDefinition {
+            id: statoTrenoPageItalo
+            source: "StatoTrenoItalo.qml"
+        }
+    ]
+    
+    onCreationCompleted: {
+        _artifactline.statusDataLoaded.connect(pushPane)
+    }
+    
     Container {
         background: Color.create("#e3e3e3")
         Titolo {
@@ -26,12 +56,19 @@ Page {
                 objectName: "lista"
                 dataModel: _artifactline.stazioneStatus
 
-                //onTriggered: navPane.tapped()
-
                 onTriggered: {
                     clearSelection();
                     select(indexPath);
-                    tabbedPane.fromStationToTrain(dataModel.data(indexPath).numeroTreno);
+                    
+                    var num = dataModel.data(indexPath).numeroTreno
+                    searchedTrain = num
+                    
+                    if(parseInt(num) > 9900 && parseInt(num) < 9999)
+                        _artifactline.requestStatusDataItalo(num)
+                    else
+                        _artifactline.requestStatusData(num)
+                        
+                    wait.open()
                 }
 
                 listItemComponents: [
@@ -54,7 +91,13 @@ Page {
                                 orario: ListItemData.orarioPartenza
                                 binario: ListItemData.binarioEff != "" ? ListItemData.binarioEff : ListItemData.binarioProg
                                 //ritardo: ListItemData.status
-                                ritardo: ListItemData.ritardo != "0" ? (ListItemData.ritardo + "'") : ""
+                                ritardo: {
+                                    if(ListItemData.ritardo != "0")
+                                        return ListItemData.ritardo + "'"
+                                    else if(ListItemData.image)
+                                        return ""
+                                    else return "n/a"
+                                    }
                                 image: "asset:///images" + ListItemData.image
                                 color: "#000000"
                                 bg: itemRoot.ListItem.indexPath % 2 ? Color.create("#ffffff") : Color.create("#eeeeee")

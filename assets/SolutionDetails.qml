@@ -1,18 +1,16 @@
 import bb.cascades 1.4
-//import QtQuick 1.0
 
 Page {
     property string searchedTrain
+    property bool offersRequested: false
+    
     onCreationCompleted: {
-        if(tl.dati.idsolution){    //no offers for italo (sorry montezemolo)
-            _artifactline.requestOffers(tl.dati.idsolution, false)
-            _artifactline.statusDataLoaded.connect(pushPane)
-        }
+        _artifactline.statusDataLoaded.connect(pushPane)
     }
 
     function pushPane() {
         wait.close();
-        if (parseInt(searchedTrain) > 9900 && parseInt(searchedTrain) < 9999){
+        if ((parseInt(searchedTrain) > 9900 && parseInt(searchedTrain) < 9999) || (parseInt(searchedTrain) > 8900 && parseInt(searchedTrain) < 8999)){
             var page = statoTrenoPageItalo.createObject()
             navigationPane.push(page)
         }
@@ -122,7 +120,6 @@ Page {
             dataModel: _artifactline.solutionDetails
             
             onTriggered: {
-                //tabbedPane.fromSearchToTrain(dataModel.data(indexPath).trainidentifier.match(/\s\d+$/)[0]) old method
                 var num = dataModel.data(indexPath).trainidentifier.match(/\d+$/)[0].trim()
                 searchedTrain = num
                 
@@ -137,10 +134,20 @@ Page {
 
             function conn(seg) {
                 _artifactline.offersLoaded.connect(seg.init)
+                if(!offersRequested){
+                    offersRequested = true;
+                    
+                    if (tl.dati.idsolution) { //no offers for italo (sorry montezemolo)
+                        _artifactline.requestOffers(tl.dati.idsolution, false)
+                    } else {				  //jk we have offers too now (screw you montezemolo)
+                        _artifactline.requestOffers(tl.dati.numeroTreno, false)
+                    }
+                }
             }
             function getTrainList() {
                 return _artifactline.trainsDetails
             }
+            
             listItemComponents: [
 
                 ListItemComponent {
@@ -154,6 +161,7 @@ Page {
                         //minHeight : ui.du(25)
                         //pref height du 18
                         //maxHeight: ui.du(18)
+                        //verticalAlignment: VerticalAlignment.Center
 
                         background: bg.imagePaint
 
@@ -165,6 +173,7 @@ Page {
                             }
                         ]
                         Container {
+                            //verticalAlignment: VerticalAlignment.Center
                             layout: DockLayout {
 
                             }
@@ -172,6 +181,7 @@ Page {
                             Container {
                             //max height du 18
                             //preferredHeight: ui.ddu(20.5) * 2
+                            //verticalAlignment: VerticalAlignment.Fill
                             horizontalAlignment: HorizontalAlignment.Left
                             leftPadding: ui.du(2.2)
                             rightPadding: ui.du(2.2)
@@ -179,7 +189,7 @@ Page {
                                 orientation: LayoutOrientation.TopToBottom
                             }
 
-                            Label {
+                                Label {
                                 id: orarioPartenza
                                 horizontalAlignment: HorizontalAlignment.Left
                                 verticalAlignment: VerticalAlignment.Top
@@ -338,7 +348,7 @@ Page {
                                         subSeg.removeAll()
                                         initSub(i);
                                         //once initialized it will fire a index changed event on the first element,
-                                        //calling displaySubService autonomously
+                                        //calling displaySubServiceClass autonomously
                                         
                                     }
                                     else{
@@ -364,7 +374,9 @@ Page {
                                             
                                             //y.desc = offer.message
                                             if(offer.available < 10000)    //dummy threshold to filter trains without counted seats
-                                                if(offer.available == 0)
+                                                if(offer.available == -1)
+                                                    y.descVisible = false
+                                                else if(offer.available == 0)
                                                     y.desc = "Posti esauriti"
                                                 else if(offer.available == 1)
                                                     y.desc = offer.available + " posto rimasto"
@@ -394,9 +406,11 @@ Page {
                                             property alias name: name.text
                                             property alias price: price.text
                                             property alias desc: desc.text
+                                            property alias descVisible: desc.visible
                                             layout: StackLayout {
 
                                             }
+                                            //verticalAlignment: VerticalAlignment.Fill
                                             topMargin: ui.du(1.0)
                                             //bottomMargin: ui.du(1.0)
                                             leftPadding: ui.du(1.0)
@@ -428,10 +442,10 @@ Page {
                                                 id: desc
                                                 textStyle.color: Color.Black
                                                 textStyle.fontSize: FontSize.Small
-                                                //multiline: true
+                                                multiline: true
                                                 autoSize.maxLineCount: 3
                                                 //verticalAlignment: VerticalAlignment.Fill
-                                                //horizontalAlignment: HorizontalAlignment.Fill
+                                                horizontalAlignment: HorizontalAlignment.Fill
                                                 //editable: false
                                                 //focusHighlightEnabled: false
                                                 //backgroundVisible: false
@@ -468,7 +482,7 @@ Page {
                             }
                             Container {
                                 id: offersCont
-
+                                //verticalAlignment: VerticalAlignment.Fill
                                 bottomPadding: 0
                                 
                             }
@@ -501,7 +515,7 @@ Page {
             imageSource: "asset:///images/ic_open.png"
             ActionBar.placement: ActionBarPlacement.Signature
             onTriggered: {
-                _artifactline.pagah(tl.index)
+                _artifactline.pagah(tl.index, main.adulti.selectedOption.text, main.bambini.selectedOption.text)
             }
         },
         ActionItem {

@@ -27,16 +27,15 @@ void StazioneStatusRequest::getStationData(QString &cod){
     request->connect(request, SIGNAL(complete(QString, bool, int)), this, SLOT(onStatusDataResponse(QString, bool, int)));
 
     QDateTime t = QDateTime::currentDateTime();
-
-    QString time = t.toString("ddd MMM dd yyyy hh:mm:ss");
-
-    QStringList eng, engDays;
-    eng << "Jan" << "Feb" << "Mar" << "Apr" << "May" << "Jun" << "Jul" << "Aug" << "Sep" << "Oct" << "Nov" << "Dec";
+    QDate date = QDate::currentDate();
+    QStringList engMonths, engDays;
+    engMonths << "Jan" << "Feb" << "Mar" << "Apr" << "May" << "Jun" << "Jul" << "Aug" << "Sep" << "Oct" << "Nov" << "Dec";
     engDays << "Mon" << "Tue" << "Wed" << "Thu" << "Fri" << "Sat" << "Sun";
-    for(int i=0; i<12; i++)
-        time.replace(QDate::shortMonthName(i+1), eng[i], Qt::CaseInsensitive);
-    for(int i = 0; i<7; i++)
-        time.replace(QDate::shortDayName(i+1), engDays[i], Qt::CaseInsensitive);
+
+    QString time = t.toString("dd yyyy hh:mm:ss");
+
+    time.prepend(engMonths[date.month()-1] + " ");
+    time.prepend(engDays[date.dayOfWeek()-1] + " ");
 
     request->requestArtifactline("http://www.viaggiatreno.it/viaggiatrenonew/resteasy/viaggiatreno/partenze/"+ cod +"/"+ time);
 

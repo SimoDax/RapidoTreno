@@ -57,6 +57,9 @@ config_pri_assets {
         $$quote($$BASEDIR/assets/dump_2_6.json) \
         $$quote($$BASEDIR/assets/dump_codici.json) \
         $$quote($$BASEDIR/assets/dump_coordinate.json) \
+        $$quote($$BASEDIR/assets/dump_coordinate_fixato.json) \
+        $$quote($$BASEDIR/assets/dump_coordinate_fixato_2.json) \
+        $$quote($$BASEDIR/assets/dump_coordinate_old.json) \
         $$quote($$BASEDIR/assets/fsnews.qml) \
         $$quote($$BASEDIR/assets/images/arrow-right-01-512.png) \
         $$quote($$BASEDIR/assets/images/background.png) \
@@ -70,14 +73,19 @@ config_pri_assets {
         $$quote($$BASEDIR/assets/images/fs_logo.jpg) \
         $$quote($$BASEDIR/assets/images/fs_logo.png) \
         $$quote($$BASEDIR/assets/images/globe.png) \
+        $$quote($$BASEDIR/assets/images/heart.png) \
         $$quote($$BASEDIR/assets/images/ic_forward.png) \
         $$quote($$BASEDIR/assets/images/ic_info.png) \
+        $$quote($$BASEDIR/assets/images/ic_location.amd) \
+        $$quote($$BASEDIR/assets/images/ic_location.png) \
+        $$quote($$BASEDIR/assets/images/ic_location_red.png) \
         $$quote($$BASEDIR/assets/images/ic_next.amd) \
         $$quote($$BASEDIR/assets/images/ic_next.png) \
         $$quote($$BASEDIR/assets/images/ic_open.png) \
         $$quote($$BASEDIR/assets/images/ic_reload.png) \
         $$quote($$BASEDIR/assets/images/ic_reply.png) \
         $$quote($$BASEDIR/assets/images/ic_search.png) \
+        $$quote($$BASEDIR/assets/images/img_cartafr_argento.png) \
         $$quote($$BASEDIR/assets/images/img_cartafr_base_red.gif) \
         $$quote($$BASEDIR/assets/images/img_cartafr_oro.gif) \
         $$quote($$BASEDIR/assets/images/img_cartafr_platino.gif) \
@@ -135,6 +143,8 @@ config_pri_assets {
 config_pri_source_group1 {
     SOURCES += \
         $$quote($$BASEDIR/src/ArtifactRequest.cpp) \
+        $$quote($$BASEDIR/src/DetailedOffersRequest.cpp) \
+        $$quote($$BASEDIR/src/ItaloApiRequest.cpp) \
         $$quote($$BASEDIR/src/ItaloRequest.cpp) \
         $$quote($$BASEDIR/src/ItaloStatusRequest.cpp) \
         $$quote($$BASEDIR/src/LocalDataManager.cpp) \
@@ -142,6 +152,7 @@ config_pri_source_group1 {
         $$quote($$BASEDIR/src/ProfileRequest.cpp) \
         $$quote($$BASEDIR/src/StatusRequest.cpp) \
         $$quote($$BASEDIR/src/StazioneStatusRequest.cpp) \
+        $$quote($$BASEDIR/src/TicketRequest.cpp) \
         $$quote($$BASEDIR/src/TrainRequest.cpp) \
         $$quote($$BASEDIR/src/app.cpp) \
         $$quote($$BASEDIR/src/main.cpp) \
@@ -149,6 +160,8 @@ config_pri_source_group1 {
 
     HEADERS += \
         $$quote($$BASEDIR/src/ArtifactRequest.hpp) \
+        $$quote($$BASEDIR/src/DetailedOffersRequest.hpp) \
+        $$quote($$BASEDIR/src/ItaloApiRequest.hpp) \
         $$quote($$BASEDIR/src/ItaloRequest.hpp) \
         $$quote($$BASEDIR/src/ItaloStatusRequest.hpp) \
         $$quote($$BASEDIR/src/LocalDataManager.hpp) \
@@ -156,6 +169,7 @@ config_pri_source_group1 {
         $$quote($$BASEDIR/src/ProfileRequest.hpp) \
         $$quote($$BASEDIR/src/StatusRequest.hpp) \
         $$quote($$BASEDIR/src/StazioneStatusRequest.hpp) \
+        $$quote($$BASEDIR/src/TicketRequest.hpp) \
         $$quote($$BASEDIR/src/TrainRequest.hpp) \
         $$quote($$BASEDIR/src/app.hpp) \
         $$quote($$BASEDIR/src/simplecrypt.h)
